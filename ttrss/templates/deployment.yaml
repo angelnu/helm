@@ -1,0 +1,106 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "ttrss.fullname" . }}
+  labels:
+    {{- include "ttrss.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "ttrss.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "ttrss.selectorLabels" . | nindent 8 }}
+    spec:
+    {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      initContainers:
+      - image: postgres:alpine
+        name: waitforpostgres
+        command:
+        - "pg_isready"
+        - "-h"
+        - {{ include "ttrss.db" . | quote }}
+        - "-p"
+        - "5432"
+      containers:
+      - name: {{ .Chart.Name }}
+        securityContext:
+          {{- toYaml .Values.securityContext | nindent 12 }}
+        image: "{{ .Values.image.repository }}:{{ .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        env:
+        {{- if .Values.internal_self_signed }}
+        - name: TTRSS_WITH_SELFSIGNED_CERT
+          value: "1"
+        - name: TTRSS_PROTO
+          value: https
+        {{- else }}
+        - name: TTRSS_PROTO
+          value: http
+        {{- end }}
+        - name: TTRSS_URL
+          value: {{ include "ttrss.TTRSS_URL" .| quote }}
+        - name: TTRSS_PORT
+          value: ""
+        - name: TTRSS_REPO_URL
+          value: {{ .Values.repo_url | quote }}
+        - name: DB_HOST
+          value: {{ include "ttrss.db" . | quote }}
+        - name: DB_PORT
+          value: {{ .Values.db.port | quote }}
+        - name: DB_NAME
+          value: {{ .Values.databaseName | quote }}
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "ttrss.superuser_secret" . }}
+              key: username
+        - name: DB_PASS
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "ttrss.superuser_secret" . }}
+              key: password
+        - name: DB_ENV_USER
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "ttrss.superuser_secret" . }}
+              key: username
+        - name: DB_ENV_PASS
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "ttrss.superuser_secret" . }}
+              key: password
+        ports:
+          - name: http
+            containerPort: {{ include "ttrss.internalPort" . }}
+        livenessProbe:
+          httpGet:
+            path: /
+            port: http
+            scheme: {{ include "ttrss.internalHTTPScheme" . }}
+        readinessProbe:
+          httpGet:
+            path: /
+            port: http
+            scheme: {{ include "ttrss.internalHTTPScheme" . }}
+        resources:
+          {{- toYaml .Values.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}

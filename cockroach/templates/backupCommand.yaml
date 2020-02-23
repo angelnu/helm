@@ -1,0 +1,25 @@
+{{- $commands := `
+for db in bank tt-rss; do
+  backup.sh "$db" /backup/new && mv /backup/new /backup/$db.sql
+done` -}}
+
+{{- if .Values.backup_schedule -}}
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: "{{ include "cockroach.fullname" .|lower }}-backup-db"
+spec:
+  schedule: {{ .Values.backup_schedule }}
+  concurrencyPolicy: Replace
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          name: "{{ include "cockroach.fullname" .|lower }}-init-db"
+          namespace: {{ .Release.Namespace }}
+          labels:
+            {{ include "cockroach.labels" . | nindent 12 }}
+        spec:
+          {{$data := dict "Chart" .Chart "Release" .Release "Values" .Values "Commands" $commands "RestartPolicy" "Never" }}
+          {{ include "cockroach.client-secure.yaml" $data | nindent 10 }}
+{{- end -}}

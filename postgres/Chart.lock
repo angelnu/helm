@@ -1,0 +1,6 @@
+dependencies:
+- name: postgres-ha
+  repository: https://charts.bitnami.com/bitnami
+  version: ~1
+digest: sha256:b0335e0374d54d6a0375d15d4d7b8e91c6fdc5f1f55d995a5c93e83bf9ea9cb6
+generated: "2020-02-15T12:20:54.046081+01:00"

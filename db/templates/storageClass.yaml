@@ -1,0 +1,12 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: {{ include "db.storageClass" . }}
+  labels:
+    {{- include "db.labels" . | nindent 4 }}
+    "helm.sh/hook": pre-install
+    helm.sh/resource-policy: keep
+  annotations:
+provisioner: kubernetes.io/no-provisioner
+reclaimPolicy: Delete
+volumeBindingMode: WaitForFirstConsumer

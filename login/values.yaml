@@ -1,0 +1,46 @@
+tags:
+  use_config: false
+openldap-volume:
+  heketi:
+    resturl: "http://heketi-api"
+  glusterfs:
+    path: openldap
+  pvcName: openldap
+
+phpldapadmin:
+  env:
+    PHPLDAPADMIN_LDAP_HOSTS: "#PYTHON2BASH:[{'test-openldap': [{'server': [{'tls': False}]},{'login': [{'bind_id': 'cn=admin,dc=example,dc=org'}]}]}]"
+
+openldap:
+  enabled: true
+  #adminPassword: for production it is better to fix this
+  persistence:
+    enabled: true
+    existingClaim: openldap
+  #env:
+    #LDAP_ORGANISATION: "A good description for ORG"
+    #LDAP_DOMAIN: "example.com"
+    #LDAP_READONLY_USER: "true"
+    #LDAP_READONLY_USER_PASSWORD: "password"
+
+keycloak-volume:
+  resturl: "http://heketi-api"
+  glusterfs:
+    path: keycloak
+  pvcName: keycloak
+
+keycloak:
+  enabled: true
+  keycloak:
+    #password: for production it is better to fix this
+    persistence:
+      deployPostgres: true
+      dbVendor: postgres
+  postgresql:
+    nameOverride: keycloak-postgresql
+    #postgresqlPassword: for production it is better to fix this
+    livenessProbe:
+      initialDelaySeconds: 600
+    persistence:
+      enabled: true
+      existingClaim: keycloak

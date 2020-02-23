@@ -1,0 +1,19 @@
+# Default values for postgres.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+global:
+  masters:
+    tolerations:
+    - effect: NoSchedule
+      key: node-role.kubernetes.io/master
+
+db:
+  persistence:
+    size: "1Gi"
+    enabled: true
+
+  postgresql:
+    #tolerations: { '- foo','- bar' }
+    #tolerations: "{{- .Values.global.masters.tolerations | toYaml -}}"
+    #nodeSelector: "{{- .Values.global.masters.nodeSelector | toYaml -}}"

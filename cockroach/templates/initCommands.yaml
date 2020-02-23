@@ -1,0 +1,33 @@
+{{- define "cockroach.init.commands" -}}
+{{- range .Values.initdbs.dbs }}
+echo 'CREATE DATABASE {{ . | quote }};'|connect.sh||/bin/true
+{{- end }}
+{{- range $user, $values := .Values.initdbs.users }}
+echo 'CREATE USER {{ $user | quote }} WITH PASSWORD {{ $values.password | quote }};'|connect.sh||/bin/true
+{{- range $values.grants }}
+echo 'GRANT {{ . }} to {{ $user | quote }};'|connect.sh
+
+
+{{- end }}
+{{- end }}
+{{- end -}}
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: "{{ include "cockroach.fullname" .|lower }}-init-db"
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{ include "cockroach.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook":  "post-install,post-upgrade"
+    "helm.sh/hook-delete-policy": "before-hook-creation"
+spec:
+  template:
+    metadata:
+      name: "{{ include "cockroach.fullname" .|lower }}-init-db"
+      labels:
+        {{ include "cockroach.labels" . | nindent 8 }}
+    spec:
+      {{$data := dict "Chart" .Chart "Release" .Release "Values" .Values "Commands" (include "cockroach.init.commands" .) "RestartPolicy" "OnFailure" }}
+      {{ include "cockroach.client-secure.yaml" $data | nindent 6 }}

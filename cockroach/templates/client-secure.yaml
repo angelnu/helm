@@ -1,0 +1,14 @@
+{{- define "cockroach.client.commands" -}}
+echo 'Connect with kubelet exec and then run "connect.sh" to connect as root'
+sleep 2147483648
+{{- end -}}
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{ include "cockroach.fullname" . }}-client
+  labels:
+    {{- include "cockroach.labels" . | nindent 4 }}
+spec:
+  {{$data := dict "Chart" .Chart "Release" .Release "Values" .Values "Commands" (include "cockroach.client.commands" .) "RestartPolicy" "Always" }}
+  {{ include "cockroach.client-secure.yaml" $data | nindent 4 }}

@@ -1,0 +1,42 @@
+{{- if eq .Values.install_dependencies_only false -}}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: "{{ include "postgresop.fullname" .|lower }}-test-db"
+  labels:
+{{ include "postgresop.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test-success
+spec:
+  template:
+    metadata:
+      name: "{{ include "postgresop.fullname" .|lower }}-test-db"
+      labels:
+        {{ include "postgresop.labels" . | nindent 8 }}
+    spec:
+      containers:
+      - name: psql
+        image: postgres:alpine
+        command: ['sh']
+        args:
+        - "-ecx"
+        - |
+          echo ";"|psql
+
+        env:
+        - name: PGHOST
+          value: {{ include "postgresop.db" . | quote }}
+        - name: PGSSLMODE
+          value: require
+        - name: PGUSER
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "postgresop.superuser_secret" . }}
+              key: username
+        - name: PGPASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "postgresop.superuser_secret" . }}
+              key: password
+      restartPolicy: Never
+{{- end }}

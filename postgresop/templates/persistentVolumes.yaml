@@ -1,0 +1,49 @@
+{{- if eq .Values.install_dependencies_only false -}}
+{{- $replicaNodes := (include "postgresop.replicaNodes" .  | splitList ",") -}}
+{{- range $i:= untilStep 0 (int (include "postgresop.replicaCount" .  )) 1 -}}
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ include "postgresop.pvName" $ }}-{{ $i }}
+  labels:
+    {{- include "postgresop.labels" $ | nindent 4 }}
+    #openebs.io/cas-type: local-hostpath
+  annotations:
+    #pv.kubernetes.io/provisioned-by: openebs.io/local
+  finalizers:
+    - kubernetes.io/pv-protection
+spec:
+  storageClassName: {{ include "postgresop.storageClass" $ }}
+  volumeMode: Filesystem
+  capacity:
+    storage: "{{ include "postgresop.replicaSize" $ }}"
+  accessModes:
+    {{- include "postgresop.accessModes" $ | nindent 4 }}
+  #local:
+  #  path: {{ include "postgresop.localPath" $ }}
+  #  fsType: ''
+  hostPath:
+  {{- if lt (len $replicaNodes) (include "postgresop.replicaCount" $ | int) }}
+    path: {{ include "postgresop.localPath" $ }}-{{ $i }}
+  {{- else }}
+    path: {{ include "postgresop.localPath" $ }}
+  {{- end }}
+  #Since it is created directly this does not delete it from cluster
+  persistentVolumeReclaimPolicy: {{ include "postgresop.persistentVolumeReclaimPolicy" $ }}
+
+  {{ if lt $i (len $replicaNodes ) -}}
+  {{- $e := index $replicaNodes $i -}}
+  {{- if ne $e "" }}
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - {{ $e }}
+  {{ end }}
+  {{ end }}
+{{ end }}
+{{- end -}}

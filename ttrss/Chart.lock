@@ -1,0 +1,6 @@
+dependencies:
+- name: postgresop
+  repository: file://../postgresop
+  version: 0.1.0
+digest: sha256:4af26fcf3354509faf79b5b4112df68068070521eb3d6c35f36f3bf490b322b9
+generated: "2020-02-23T20:21:24.562108+01:00"

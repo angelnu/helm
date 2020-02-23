@@ -1,0 +1,44 @@
+{{- if eq .Values.install_dependencies_only false -}}
+{{- range $i, $e := .Values.replicaNodes }}
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ include "db.pvName" $ }}-{{ $i }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    {{- include "db.labels" $ | nindent 4 }}
+    #openebs.io/cas-type: local-hostpath
+  annotations:
+    #pv.kubernetes.io/provisioned-by: openebs.io/local
+  finalizers:
+    - kubernetes.io/pv-protection
+spec:
+  storageClassName: {{ include "db.storageClass" $ }}
+  volumeMode: Filesystem
+  capacity:
+    storage: "{{ $.Values.replicaSize }}"
+  accessModes:
+    {{ if $.Values.accessModes }}
+    {{ $.Values.accessModes| toYaml | nindent 4 }}
+    {{ else }}
+    - ReadWriteOnce
+    {{ end }}
+  #local:
+  #  path: {{ include "db.localPath" $ }}
+  #  fsType: ''
+  hostPath:
+    path: {{ include "db.localPath" $ }}
+
+  #Since it is created directly this does not delete it from gluster
+  persistentVolumeReclaimPolicy: Retain
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - {{ $e }}
+{{- end -}}
+{{- end -}}

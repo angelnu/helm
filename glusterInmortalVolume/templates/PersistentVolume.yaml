@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ include "glusterInmortalVolume.pvName" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "glusterInmortalVolume.labels" . | nindent 4 }}
+spec:
+  storageClassName: {{ include "glusterInmortalVolume.storageClass" . }}
+  capacity:
+    storage: "{{ .Values.size }}Gi"
+  accessModes:
+    {{- .Values.accessModes| toYaml | nindent 4 }}
+  glusterfs:
+    {{- include "glusterInmortalVolume.glusterfs" . | nindent 4 }}
+  #Since it is created directly this does not delete it from gluster
+  persistentVolumeReclaimPolicy: Delete

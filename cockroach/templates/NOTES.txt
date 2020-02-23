@@ -1,0 +1,8 @@
+Approve certs with:
+kubectl certificate approve {{ .Release.Namespace }}.node.{{ template "cockroach.fullname" . }}-cockroachdb-0
+kubectl certificate approve {{ .Release.Namespace }}.node.{{ template "cockroach.fullname" . }}-cockroachdb-1
+kubectl certificate approve {{ .Release.Namespace }}.node.{{ template "cockroach.fullname" . }}-cockroachdb-2
+
+To connect to the client as root execute
+
+kubectl exec -it {{ template "cockroach.fullname" . }}-client connect.sh

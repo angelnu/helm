@@ -1,0 +1,84 @@
+{{- if eq .Values.install_dependencies_only false -}}
+apiVersion: kubedb.com/v1alpha1
+kind: Postgres
+metadata:
+  name: {{ include "db.fullname" . }}
+spec:
+  version: "11.2"
+  replicas: 2
+  standbyMode: Hot
+  streamingMode: asynchronous
+  leaderElection:
+    leaseDurationSeconds: 15
+    renewDeadlineSeconds: 10
+    retryPeriodSeconds: 2
+  storageType: Durable
+  storage:
+    storageClassName: {{ include "db.storageClass" . }}
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: {{ .Values.replicaSize }}
+  terminationPolicy: WipeOut
+
+  initContainers:
+  - name: {{ .Chart.Name }}-reset-password
+    image: postgres:alpine
+    command: ['bash']
+    args:
+    - "-ecx"
+    - |
+      echo "alter user '$DB_USER' with password '$DB_PASS';"|psql -U postgres
+    env:
+    - name: DB_USER
+      valueFrom:
+        secretKeyRef:
+          name: {{ include "db.fullname" . }}-auth
+          key: POSTGRES_USER
+    - name: DB_PASS
+      valueFrom:
+        secretKeyRef:
+          name: {{ include "db.fullname" . }}-auth
+          key: POSTGRES_PASSWORD
+
+  podTemplate:
+    spec:
+      resources: {{ .Values.resources | toYaml }}
+      tolerations: {{ .Values.tolerations | toYaml }}
+      nodeSelector: {{ .Values.nodeSelector | toYaml }}
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - topologyKey: kubernetes.io/hostname
+            labelSelector:
+              matchLabels:
+                app: "{{ include "db.fullname" . }}"
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values:
+                {{- range .Values.replicaNodes }}
+                - {{ . }}
+                {{- end }}
+          preferredDuringSchedulingIgnoredDuringExecution:
+          {{- range $i, $e := .Values.replicaNodes }}
+          - weight: {{ mul (sub 2 $i) 50 }}
+            preference:
+              matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values:
+                - {{ $e }}
+          {{- end }}
+
+  #backupSchedule:
+  #  cronExpression: "@every 2d"
+  #  local:
+  #    mountPath: /tmp/sub0
+  #    persistentVolumeClaim:
+  #      claimName: pgbackup
+{{- end -}}

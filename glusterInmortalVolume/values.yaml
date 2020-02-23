@@ -1,0 +1,29 @@
+# Default values for gluster-volume.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+enabled: false
+
+nameOverride: ""
+fullnameOverride: ""
+
+accessModes:
+- ReadWriteOnce
+- ReadOnlyMany
+
+#Size in GiB
+size: 1
+
+#pvcName: <full name>
+
+heketi:
+  resturl: "http://heketi:8080"
+  secretNamespace: "kube-system"
+  secretName: "heketi-admin-secret"
+  secretRestUser: "user"
+  secretRestKey: "key"
+
+glusterfs:
+  endpoints: heketi-storage-endpoints
+  #path: mitest
+  #path: <auto set>

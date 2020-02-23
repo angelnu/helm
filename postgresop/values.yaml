@@ -1,0 +1,52 @@
+#By default we do not load the dependencies (needs to be done once) but the DB config
+install_dependencies_only: false
+port: 5432
+#superuser_password: <my Password> - random if not set
+
+#The following settings are usually set global but can also be overrided with local values
+# replicaCount: 5
+global:
+  postgresop:
+    persistent: false
+    localPrefix: "/run/db" # this is tempfs - you need to set to a persistent place!!!
+    #localPath: "/run/db/myDB"
+
+    replicaCount: 2
+    replicaSize: 1Gi
+    team: team
+    accessModes:
+    - ReadWriteOnce
+    replicaNodes: []
+    #  - node1.example.com
+    #  - node2.example.com
+
+    #If you change this after creating the DB then use psql to set the password manually
+    superuser: postgres
+
+
+nameOverride: ""
+fullnameOverride: ""
+
+operator:
+  configKubernetes:
+    #enable_pod_antiaffinity: true
+    #pod_environment_configmap: "postgres-pod-config"
+    watched_namespace: "*"
+
+#resources:
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

@@ -1,0 +1,67 @@
+{{- if eq .Values.install_dependencies_only false -}}
+{{- $replicaNodes := (include "postgresop.replicaNodes" .  | splitList ",") -}}
+apiVersion: "acid.zalan.do/v1"
+kind: postgresql
+metadata:
+  name: {{ include "postgresop.db" . }}
+labels:
+  {{- include "postgresop.labels" $ | nindent 4 }}
+spec:
+  teamId: {{ include "postgresop.fullname" . }}
+  volume:
+    size: {{ include "postgresop.replicaSize" . }}
+  numberOfInstances: {{ include "postgresop.replicaCount" . }}
+  users:
+    # database owner
+    {{ include "postgresop.superuser" . }}:
+    - superuser
+    - createdb
+
+  #databases: name->owner
+  databases:
+    postgres: postgres
+  postgresql:
+    version: "11"
+  volume:
+    storageClass: {{ include "postgresop.storageClass" . }}
+    size: {{ include "postgresop.replicaSize" . }}
+
+
+  {{- if .Values.resources -}}
+  resources:
+    {{ .Values.resources | toYaml | nindent 4}}
+  {{- end }}
+  tolerations: {{ .Values.tolerations | toYaml }}
+  nodeSelector: {{ .Values.nodeSelector | toYaml }}
+  affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+      - topologyKey: kubernetes.io/hostname
+        labelSelector:
+          matchLabels:
+            app: "{{ include "postgresop.fullname" . }}"
+    {{- if ne (include "postgresop.replicaNodes" .) "" }}
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: kubernetes.io/hostname
+            operator: In
+            values:
+            {{- range $replicaNodes }}
+            - {{ . }}
+            {{- end }}
+      preferredDuringSchedulingIgnoredDuringExecution:
+      {{- range $i, $e := $replicaNodes }}
+      {{- if ne $e "" }}
+      - weight: {{ mul (sub 2 $i) 50 }}
+        preference:
+          matchExpressions:
+          - key: kubernetes.io/hostname
+            operator: In
+            values:
+            - {{ $e }}
+      {{- end }}
+      {{- end }}
+    {{- end }}
+{{- end -}}
