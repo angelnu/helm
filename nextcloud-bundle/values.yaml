@@ -7,6 +7,7 @@ fullnameOverride: ""
 
 db:
   replicaSize: 10Gi
+  install_dependencies_only: false #Not sure why this is needed...
 
 persistentVolume:
   #If enable then the section bellow needs to be set
