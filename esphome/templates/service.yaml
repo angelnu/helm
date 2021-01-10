@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "esphome.fullname" . }}
+  labels:
+    {{- include "esphome.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+{{- if .Values.vscode.enabled }}
+    - name: vscode
+      port: {{ .Values.vscode.service.port }}
+      protocol: TCP
+      targetPort: {{ .Values.vscode.service.port }}
+{{ if (and (eq .Values.vscode.service.type "NodePort") (not (empty .Values.vscode.service.nodePort))) }}
+      nodePort: {{.Values.vscode.service.nodePort}}
+{{ end }}
+{{- end }}
+{{- if .Values.service.otherPorts }}
+    {{- .Values.service.otherPorts | toYaml | indent 4 }}
+{{- end }}
+  selector:
+    {{- include "esphome.selectorLabels" . | nindent 4 }}

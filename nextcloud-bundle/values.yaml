@@ -1,0 +1,86 @@
+# Default values for nextcloud-bundle.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+nameOverride: ""
+fullnameOverride: ""
+
+db:
+  replicaSize: 10Gi
+
+persistentVolume:
+  #If enable then the section bellow needs to be set
+  enabled: false
+  nfs: {}
+    #It can be globally defined as well: global.nfs.mountOptions
+    #mountOptions:
+    #- local_lock=posix
+    #- nfsvers=4.1
+
+    #It can be globally defined as well: global.nfs.host
+    #host: foo
+
+    #path: bla/bla
+
+
+nextcloud:
+  image:
+    tag: latest
+  persistence:
+    enabled: false #Enable for production
+    storageClass: '{{ include "nextcloud-bundle.fullname" . }}'
+    size: 1T
+  #username: admin
+  #password: password
+  #redis:
+  #  enabled: true
+  internalDatabase:
+    enabled: false
+  nextcloud:
+    phpConfigs:
+      uploadLimit.ini: |
+        upload_max_filesize = 16G
+        post_max_size = 16G
+        max_input_time = 3600
+        max_execution_time = 3600
+  externalDatabase:
+    enabled: true
+    type: postgresql
+    database: postgres
+    secret: 'postgres.{{ include "nextcloud-bundle.fullname" . }}-db-postgres.credentials'
+    host: '{{ include "nextcloud-bundle.fullname" . }}-db-postgres'
+  cronjob:
+    enabled: true
+  ingress:
+    annotations:
+      #nginx.ingress.kubernetes.io/proxy-connect-timeout: "360"
+      #nginx.ingress.kubernetes.io/proxy-send-timeout: "360"
+      #nginx.ingress.kubernetes.io/proxy-read-timeout: "360"
+      nginx.ingress.kubernetes.io/proxy-body-size: 8000m
+      #nginx.ingress.kubernetes.io/proxy-max-temp-file-size: "16g"
+      #nginx.ingress.kubernetes.io/client-body-buffer-size: "2g"
+      # nginx.ingress.kubernetes.io/server-snippet: |-
+      #   rewrite ^/.well-known/webfinger /public.php?service=webfinger last;
+      #   rewrite ^/.well-known/host-meta /public.php?service=host-meta last;
+      #   rewrite ^/.well-known/host-meta.json /public.php?service=host-meta-json;
+      #   location = /.well-known/carddav {
+      #    return 301 $scheme://$host/remote.php/dav;
+      #   }
+      #   location = /.well-known/caldav {
+      #    return 301 $scheme://$host/remote.php/dav;
+      #   }
+      #   location = /robots.txt {
+      #    allow all;
+      #    log_not_found off;
+      #    access_log off;
+      #   }
+      #   location ~ \.(?:png|html|ttf|ico|jpg|jpeg)$ {
+      #    try_files $uri /index.php$request_uri;
+      #    # Optional: Don't log access to other assets
+      #    access_log off;
+      #   }
+      #   location ~ ^/(?:build|tests|config|lib|3rdparty|templates|data)/ {
+      #    deny all;
+      #   }
+      #   location ~ ^/(?:autotest|occ|issue|indie|db_|console) {
+      #    deny all;

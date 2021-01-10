@@ -1,0 +1,60 @@
+{{- if eq .Values.install_dependencies_only false -}}
+{{- if ne (include "postgresop.backupPVC" .) "" -}}
+# ------------------- CronJob ------------------- #
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: {{ include "postgresop.fullname" . }}-backup
+  labels:
+    {{- include "postgresop.labels" $ | nindent 4 }}
+spec:
+  schedule: {{ include "postgresop.backup_schedule" . | quote }}
+  concurrencyPolicy: Replace
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          name: {{ include "postgresop.fullname" . }}-backup
+          labels:
+            {{- include "postgresop.selectorLabels" $ | nindent 12 }}
+        spec:
+          containers:
+            - name: backup
+              image: postgres #TBD
+              imagePullPolicy: Always #TBD
+              command:
+              - /bin/sh
+              - -ce
+              - |
+                echo "$(date) - Start dump"
+                pg_dumpall > /backup/new && mv /backup/new /backup/backup
+                echo "$(date) - End dump"
+                ls -lh /backup
+              resources: #TBD
+                requests:
+                  memory: "10Mi"
+                  cpu: "5m"
+              env:
+              - name: PGHOST
+                value: {{ include "postgresop.db" . }}
+              - name: PGUSER
+                valueFrom:
+                  secretKeyRef:
+                    name: {{ include "postgresop.superuser_secret" . }}
+                    key: username
+              - name: PGPASSWORD
+                valueFrom:
+                  secretKeyRef:
+                    name: {{ include "postgresop.superuser_secret" . }}
+                    key: password
+              volumeMounts:
+              - mountPath: /backup
+                name: backup-volume
+                subPath: {{ include "postgresop.backupPVCSubpath" . }}
+          restartPolicy: OnFailure
+          volumes:
+            - name: backup-volume
+              persistentVolumeClaim:
+                claimName: {{ include "postgresop.backupPVC" . }}
+{{- end -}}
+{{- end -}}

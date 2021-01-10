@@ -62,6 +62,8 @@ Create the name of the service account to use
 {{- end -}}
 {{- end -}}
 
+
+
 {{- define "postgresop.db" -}}
 {{- include "postgresop.fullname" .|lower -}}-postgres
 {{- end -}}
@@ -112,4 +114,22 @@ Recycle
 
 {{- define "postgresop.localPath" -}}
 {{- default (printf "%s/%s" (include "postgresop.localPrefix" .) (include "postgresop.fullname" .)) (default .Values.global.postgresop.localPath .Values.localPath) -}}
+{{- end -}}
+
+{{- define "postgresop.backup_schedule" -}}
+{{- default .Values.global.postgresop.backup_schedule .Values.backup_schedule -}}
+{{- end -}}
+
+{{- define "postgresop.backupPVCPrefix" -}}
+{{- default .Values.global.postgresop.backupPVCPrefix .Values.backupPVCPrefix -}}
+{{- end -}}
+
+{{- define "postgresop.backupPVCSubpath" -}}
+{{- default (printf "%s/%s" (include "postgresop.backupPVCPrefix" .) (include "postgresop.fullname" .)) (default .Values.global.postgresop.backupPVCSubpath .Values.backupPVCSubpath) -}}
+{{- end -}}
+
+{{- define "postgresop.backupPVC" -}}
+{{- if (default .Values.global.postgresop.persistent .Values.persistent) -}}
+{{- required "A PVC for backups is required when persistent is enabled" (default .Values.global.postgresop.backupPVC .Values.backupPVC) -}}
+{{- end -}}
 {{- end -}}

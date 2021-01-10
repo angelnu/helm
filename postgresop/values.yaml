@@ -8,8 +8,14 @@ port: 5432
 global:
   postgresop:
     persistent: false
+    backup_schedule: "@daily"
+
     localPrefix: "/run/db" # this is tempfs - you need to set to a persistent place!!!
     #localPath: "/run/db/myDB"
+
+    backupPVCPrefix: "backup/db"
+    #backupPVCSubpath: "backup/db/myDB"
+    #backupPVC: myDBBackup PVC <- required when persistent:true
 
     replicaCount: 2
     replicaSize: 1Gi
@@ -27,11 +33,16 @@ global:
 nameOverride: ""
 fullnameOverride: ""
 
-operator:
+postgres-operator:
+  configUsers:
+    # postgres username used for replication between instances
+    replication_username: postgres
   configKubernetes:
     #enable_pod_antiaffinity: true
     #pod_environment_configmap: "postgres-pod-config"
     watched_namespace: "*"
+    #list of labels that can be inherited from the cluster manifest
+    inherited_labels: application, environment
 
 #resources:
   # We usually recommend not to specify default resources and to leave this as a conscious

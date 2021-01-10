@@ -1,0 +1,32 @@
+{{- if .Values.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: "{{ include "clusterfs.fullname" .|lower }}-test-volume"
+  labels:
+{{ include "clusterfs.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test-success
+    #"helm.sh/hook": post-install
+    "helm.sh/hook-delete-policy": hook-succeeded
+spec:
+  template:
+    metadata:
+      name: "{{ include "clusterfs.fullname" .|lower }}-test-volume"
+      labels:
+        {{ include "clusterfs.labels" . | nindent 8 }}
+    spec:
+      volumes:
+        - name: pv-test
+          persistentVolumeClaim:
+            claimName: {{ include "clusterfs.testPvcName" . }}
+      containers:
+        - name: ls
+          image: busybox
+          command: ['ls']
+          args:  ['/test']
+          volumeMounts:
+            - mountPath: "/test"
+              name: pv-test
+      restartPolicy: Never
+{{- end }}

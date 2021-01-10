@@ -1,0 +1,87 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "iobroker.fullname" . }}
+  labels:
+    {{- include "iobroker.labels" . | nindent 4 }}
+spec:
+  serviceName: {{ include "iobroker.fullname" . }}
+  selector:
+    matchLabels:
+      {{- include "iobroker.selectorLabels" . | nindent 6 }}
+  replicas: 1
+  template:
+    metadata:
+      name: {{ include "iobroker.fullname" . }}
+      annotations:
+        container.apparmor.security.beta.kubernetes.io/{{ .Chart.Name }}: unconfined
+      labels:
+        {{- include "iobroker.selectorLabels" . | nindent 8 }}
+    spec:
+    {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      serviceAccountName: {{ include "iobroker.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.securityContext | nindent 8 }}
+      hostname: {{ .Chart.Name }}
+      tolerations:
+      #- effect: NoSchedule
+      #  key: node-role.kubernetes.io/master
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.image.repository }}:{{ .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        # command:
+        #   - sh
+        #   - -c
+        #   - while [ 1 ]; do sleep 10;done
+        resources:
+          {{- toYaml .Values.resources | nindent 12 }}
+        ports:
+        - containerPort: 8081 #original admin
+        - containerPort: 8082 #original vis
+        - containerPort: 8084 #original io sockets
+        - containerPort: 8087 #original SimpleAPI
+        - containerPort: 30000 #hrpc.0
+        - containerPort: 30001 #hrpc.1
+        - containerPort: 30002 #hrpc.2
+        - containerPort: 30003 #hrpc.3
+        - containerPort: 30004 #hrpc.4
+        - containerPort: 30005 #hrpc.5
+        - containerPort: 30081 #Reconfigured admin
+        - containerPort: 30082 #Reconfigured vis
+        - containerPort: 30087 #Reconfigured SimpleAPI
+        livenessProbe:
+          tcpSocket:
+            port: 30082
+          initialDelaySeconds: 600 # 10 minutes
+          timeoutSeconds: 5
+          failureThreshold: 3 # 2 minutes
+        securityContext:
+          {{- toYaml .Values.podSecurityContext | nindent 10 }}
+        env:
+        - name: TZ
+          value: Europe/Berlin
+        volumeMounts:
+        - mountPath: /opt/iobroker/iobroker-data
+          name: data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ include "iobroker.pvc" . }}
+        #- name: logs
+        #  emptyDir: {}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

@@ -1,0 +1,42 @@
+# Default values for certs.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+nameOverride: ""
+fullnameOverride: ""
+
+secrets: []
+# - name: dnsmadeeasy
+#   stringData: &certs_secrets_dnsmadeeasy_stringData
+#     key: 1234-....-1234
+#     secret: 1234-....-1234
+
+clusterIssuers: {}
+  # letsencrypt-staging:
+  #   type: acme
+  #   isProd: false
+  #   email: acme@example.com
+  #   solvers:
+  #   - dns01:
+  #       webhook:
+  #         groupName: acme.mycompany.com
+  #         solverName: dnsmadeeasy
+  #         config:
+  #           apiKeyRef:
+  #             name: dnsmadeeasy
+  #             key: key
+  #           apiSecretRef:
+  #             name: dnsmadeeasy
+  #             key: secret
+
+certificates: []
+# - name: myCertificate
+#   clusterIssuer: tlsIssuer
+#   dnsNames:
+#   - '*.example.com
+#   - '*.test.example.com'
+#   - 'foo.example.com'
+
+letsencrypt:
+  staging_server: https://acme-staging-v02.api.letsencrypt.org/directory
+  prod_server: https://acme-v02.api.letsencrypt.org/directory

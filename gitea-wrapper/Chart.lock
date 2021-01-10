@@ -1,0 +1,9 @@
+dependencies:
+- name: postgresop
+  repository: file://../postgresop
+  version: 0.1.0
+- name: gitea
+  repository: ""
+  version: ~1.9
+digest: sha256:ba9eab67721eea156e0c4f21774821cbb303895cee1a2b6fb595a0b861bb8146
+generated: "2020-03-14T15:29:42.950161+01:00"

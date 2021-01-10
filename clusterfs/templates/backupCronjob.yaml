@@ -1,0 +1,52 @@
+{{- if ne (include "clusterfs.backupPVC" .) "" -}}
+# ------------------- CronJob ------------------- #
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: {{ include "clusterfs.fullname" . }}-backup
+  labels:
+    {{- include "clusterfs.labels" . | nindent 4 }}
+spec:
+  schedule: {{ include "clusterfs.backup_schedule" . | quote }}
+  concurrencyPolicy: Replace
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          name: {{ include "clusterfs.fullname" . }}-backup
+          labels:
+            {{- include "clusterfs.selectorLabels" . | nindent 12 }}
+        spec:
+          containers:
+          - name: backup
+            image: alpine
+            command:
+            - /bin/sh
+            - -ce
+            - |
+              apk add --no-cache rsync
+              echo "$(date) - Start dump"
+              rsync -avxX --del /source/ /backup
+              echo "$(date) - End dump"
+              ls -lh /backup
+            resources: #TBD
+              requests:
+                memory: "10Mi"
+                cpu: "5m"
+            env:
+            volumeMounts:
+            - mountPath: /source
+              name: source-volume
+              readOnly: true
+            - mountPath: /backup
+              name: backup-volume
+              subPath: {{ include "clusterfs.backupPVCSubpath" . }}
+          restartPolicy: OnFailure
+          volumes:
+          - name: source-volume
+            persistentVolumeClaim:
+              claimName: {{ include "clusterfs.pvcName" . }}
+          - name: backup-volume
+            persistentVolumeClaim:
+              claimName: {{ include "clusterfs.backupPVC" . }}
+{{- end -}}

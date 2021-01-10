@@ -1,0 +1,28 @@
+{{- $outer := . -}}
+{{- range $issuer_name, $issuer := .Values.clusterIssuers -}}
+{{- with $outer -}}
+apiVersion: cert-manager.io/v1alpha2
+kind: ClusterIssuer
+metadata:
+  name: {{ $issuer_name }}
+  labels:
+    {{- include "certs.labels" . | nindent 4 }}
+spec:
+  acme:
+    {{- if $issuer.isProd }}
+    server: {{ .Values.letsencrypt.prod_server }}
+    {{- else }}
+    server: {{ .Values.letsencrypt.staging_server }}
+    {{- end }}
+    email: {{ $issuer.email }}
+
+    # Name of a secret used to store the ACME account private key
+    privateKeySecretRef:
+      name: {{ $issuer_name }}
+
+    # ACME DNS-01 provider configurations
+    solvers:
+    {{- toYaml $issuer.solvers | nindent 4 }}
+---
+{{- end -}}
+{{- end -}}

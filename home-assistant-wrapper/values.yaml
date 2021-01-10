@@ -1,0 +1,36 @@
+# Default values for home-assistant-wrapper.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+nameOverride: ""
+fullnameOverride: ""
+
+ha-volume:
+  size: 10
+  glusterfs:
+    path: home-assistant
+  pvcName: home-assistant
+
+db:
+  replicaSize: 10Gi
+  install_dependencies_only: false #Not sure why this is needed...
+
+ha:
+  image:
+    tag: latest
+    pullPolicy: Always #IfNotPresent
+
+  persistence:
+    enabled: true
+    existingClaim: home-assistant
+
+  service:
+    publishNotReadyAddresses: true
+
+  appdaemon:
+    image:
+      tag: latest
+      pullPolicy: Always #IfNotPresent
+  
+  nodeSelector:
+    kubernetes.io/arch: amd64

@@ -1,0 +1,59 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "iobroker.fullname" . }}
+  labels:
+    {{- include "iobroker.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  loadBalancerIP: {{ .Values.service.loadBalancerIP }}
+  sessionAffinity: {{ .Values.service.sessionAffinity }}
+  ports:
+    - name: admin
+      port: 30081
+      targetPort: 30081
+      nodePort: 30081
+    - name: vis
+      port: 30082
+      targetPort: 30082
+      nodePort: 30082
+    - name: http
+      port: 80
+      targetPort: 30082
+    - name: iosocket
+      port: 30084
+      targetPort: 30084
+      nodePort: 30084
+    - name: api
+      port: 30087
+      targetPort: 30087
+      nodePort: 30087
+    - name: rfdclient0
+      port: 30000
+      nodePort: 30000
+    - name: rfdclient1
+      port: 30001
+      nodePort: 30001
+    - name: rfdclient2
+      port: 30002
+      nodePort: 30002
+    - name: rfdclient3
+      port: 30003
+      nodePort: 30003
+    - name: rfdclient4
+      port: 30004
+      nodePort: 30004
+    - name: rfdclient5
+      port: 30005
+      nodePort: 30005
+    - name: admin-org
+      port: 8081
+      targetPort: 8081
+    - name: vis-org
+      port: 8082
+      targetPort: 8082
+    - name: iosocket-org
+      port: 8084
+      targetPort: 8084
+  selector:
+    {{- include "iobroker.selectorLabels" . | nindent 4 }}

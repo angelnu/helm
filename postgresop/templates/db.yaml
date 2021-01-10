@@ -4,8 +4,8 @@ apiVersion: "acid.zalan.do/v1"
 kind: postgresql
 metadata:
   name: {{ include "postgresop.db" . }}
-labels:
-  {{- include "postgresop.labels" $ | nindent 4 }}
+  labels:
+    {{- include "postgresop.labels" $ | nindent 4 }}
 spec:
   teamId: {{ include "postgresop.fullname" . }}
   volume:
@@ -32,16 +32,16 @@ spec:
     {{ .Values.resources | toYaml | nindent 4}}
   {{- end }}
   tolerations: {{ .Values.tolerations | toYaml }}
-  nodeSelector: {{ .Values.nodeSelector | toYaml }}
-  affinity:
-    podAntiAffinity:
-      requiredDuringSchedulingIgnoredDuringExecution:
-      - topologyKey: kubernetes.io/hostname
-        labelSelector:
-          matchLabels:
-            app: "{{ include "postgresop.fullname" . }}"
+  #nodeSelector: {{ .Values.nodeSelector | toYaml }}
+  #affinity:
+  #  podAntiAffinity:
+  #    requiredDuringSchedulingIgnoredDuringExecution:
+  #    - topologyKey: kubernetes.io/hostname
+  #      labelSelector:
+  #        matchLabels:
+  #          app: "{{ include "postgresop.fullname" . }}"
     {{- if ne (include "postgresop.replicaNodes" .) "" }}
-    nodeAffinity:
+  nodeAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:
         nodeSelectorTerms:
         - matchExpressions:

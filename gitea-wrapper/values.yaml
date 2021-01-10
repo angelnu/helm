@@ -1,0 +1,49 @@
+# Default values for gitea-wrapper.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+nameOverride: ""
+fullnameOverride: ""
+
+db:
+  replicaSize: 1Gi
+  install_dependencies_only: false #Not sure why this is needed...
+
+persistentVolume:
+  #If enable then the section bellow needs to be set
+  enabled: false
+  nfs: {}
+    #It can be globally defined as well: global.nfs.mountOptions
+    #mountOptions:
+    #- local_lock=posix
+    #- nfsvers=4.1
+
+    #It can be globally defined as well: global.nfs.host
+    #host: foo
+
+    #path: bla/bla
+
+gitea:
+  nodeSelector:
+    kubernetes.io/arch: amd64
+
+  ## In order to disable initial install screen you must have secretKey and disableInstaller=true
+  config:
+  #  secretKey: define_your_secret
+    disableInstaller: false
+    offlineMode: false
+    requireSignin: false
+    disableRegistration: false
+    openidSignin: true
+    notifyMail: false
+    mailer:
+      enabled: false
+      host: smtp.gmail.com
+      port: 587
+      tls: false
+      from: ""
+      user: ""
+      passwd: ""
+    metrics:
+      enabled: false
+      token: ""

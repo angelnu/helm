@@ -22,7 +22,7 @@ appVersion: 1.16.0
 
 dependencies:
 - name: postgres-operator
-  repository: https://raw.githubusercontent.com/zalando/postgres-operator/master/charts/postgres-operator
-  version: ">=1.3.0"
-  alias: operator
+  repository: https://raw.githubusercontent.com/zalando/postgres-operator/master/charts/postgres-operator/postgres-operator-1.6.0.tgz
+              https://raw.githubusercontent.com/zalando/postgres-operator/master/charts/postgres-operator/Chart.yaml
+  version: ">=1.16.0"
   condition: install_dependencies_only

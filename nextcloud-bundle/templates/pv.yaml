@@ -1,0 +1,21 @@
+{{- if .Values.persistentVolume.enabled }}
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ include "nextcloud-bundle.fullname" . }}
+spec:
+  storageClassName: {{ include "nextcloud-bundle.fullname" . }}
+  capacity:
+    storage: {{ .Values.nextcloud.persistence.size }}
+  accessModes:
+    - {{ .Values.nextcloud.persistence.accessMode | quote }}
+  {{- if ne (include "nextcloud-bundle.persistentVolume-mountOptions" .) "" }}
+  mountOptions:
+{{ include "nextcloud-bundle.persistentVolume-mountOptions" . | indent 2 }}
+  {{- end }}
+  {{- if .Values.persistentVolume.nfs }}
+  nfs:
+    server: '{{ include "nextcloud-bundle.persistentVolume-nfs-server" . }}'
+    path: '{{ include "nextcloud-bundle.persistentVolume-nfs-path" . }}'
+  {{- end }}
+{{ end }}

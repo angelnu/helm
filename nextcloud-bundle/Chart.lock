@@ -1,0 +1,9 @@
+dependencies:
+- name: postgresop
+  repository: file://../postgresop
+  version: 0.1.0
+- name: nextcloud
+  repository: ""
+  version: ~1
+digest: sha256:5808960ba4daf41bf691073a3886d26ab7a236007e6038d6441237c3ec12a320
+generated: "2021-01-09T04:28:43.759962611+01:00"

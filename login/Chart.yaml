@@ -22,9 +22,9 @@ appVersion: 0.1.0
 
 dependencies:
 
-- name: glusterInmortalVolume
+- name: clusterfs
   version: ">=0.1.0"
-  repository: "file://../glusterInmortalVolume"
+  repository: "file://../clusterfs"
   condition: openldap.enabled
   alias: openldap-volume
 
@@ -38,12 +38,17 @@ dependencies:
   repository: https://cetic.github.io/helm-charts
   condition: openldap.enabled
 
-- name: glusterInmortalVolume
+- name: clusterfs
   version: ">=0.1.0"
-  repository: "file://../glusterInmortalVolume"
+  repository: "file://../clusterfs"
   condition: keycloak.enabled
   alias: keycloak-volume
 
+- name: postgresop
+  version: ">=0.1.0"
+  repository: "file://../postgresop"
+  alias: db
+  
 - name: keycloak
   version: "~6"
   repository: https://codecentric.github.io/helm-charts

@@ -2,7 +2,7 @@
 {{- $fullName := include "ttrss.fullname" . -}}
 {{- $svcPort := include "ttrss.servicePort" . -}}
 {{- if semverCompare ">=1.14-0" .Capabilities.KubeVersion.GitVersion -}}
-apiVersion: networking.k8s.io/v1beta1
+apiVersion: networking.k8s.io/v1
 {{- else -}}
 apiVersion: extensions/v1beta1
 {{- end }}
@@ -28,14 +28,17 @@ spec:
 {{- end }}
   rules:
   {{- range .Values.ingress.hosts }}
-    - host: {{ .host | quote }}
-      http:
-        paths:
+  - host: {{ .host | quote }}
+    http:
+      paths:
         {{- range .paths }}
-          - path: {{ . }}
-            backend:
-              serviceName: {{ $fullName }}
-              servicePort: {{ $svcPort }}
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ $fullName }}
+            port:
+              number: {{ $svcPort }}
         {{- end }}
   {{- end }}
 {{- end }}

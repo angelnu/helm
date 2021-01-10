@@ -1,0 +1,143 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "esphome.fullname" . }}
+  labels:
+    {{- include "esphome.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "esphome.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "esphome.selectorLabels" . | nindent 8 }}
+    spec:
+    {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      serviceAccountName: {{ include "esphome.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      volumes:
+      - name: config
+        {{- if .Values.persistence.enabled }}
+        persistentVolumeClaim:
+          claimName: {{ required "claimName is missing" (include "esphome.claimName" .) }}
+        {{- else }}
+        emptyDir: {}
+        {{- end }}
+      initContainers:
+      {{- if .Values.git.enabled }}
+      - name: git-sync
+        image: "{{ .Values.git.image.repository }}:{{ .Values.git.image.tag }}"
+        imagePullPolicy: {{ .Values.git.image.pullPolicy }}
+        {{- if .Values.git.command }}
+        command:
+          {{- range .Values.git.command }}
+          - {{ . | quote }}
+          {{- end }}
+        {{- else }}
+        command: ['sh', '-c', '[ "$(ls {{ .Values.git.syncPath }})" ] || git clone {{ .Values.git.repo }} {{ .Values.git.syncPath }}']
+        {{- end }}
+        volumeMounts:
+        - mountPath: /config
+          name: config
+        - mountPath: {{ .Values.git.keyPath }}
+          name: git-secret
+        {{- if .Values.extraVolumeMounts }}{{ toYaml .Values.extraVolumeMounts | trim | nindent 8 }}{{ end }}
+        {{- if .Values.usePodSecurityContext }}
+        securityContext:
+          runAsUser: {{ default 0 .Values.runAsUser }}
+        {{- if and (.Values.runAsUser) (.Values.fsGroup) }}
+        {{- if not (eq .Values.runAsUser 0.0) }}
+          fsGroup: {{ .Values.fsGroup }}
+        {{- end }}
+        {{- end }}
+        {{- end }}
+      {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 6052
+              protocol: TCP
+          volumeMounts:
+          - mountPath: /config
+            name: config
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+        {{- if .Values.vscode.enabled }}
+        - name: vscode
+          image: "{{ .Values.vscode.image.repository }}:{{ .Values.vscode.image.tag }}"
+          imagePullPolicy: {{ .Values.vscode.image.pullPolicy }}
+          workingDir: {{ .Values.vscode.hassConfig }}
+          args:
+            #- --allow-http
+            - --port={{ .Values.vscode.service.port }}
+            {{- if not (.Values.vscode.password) }}
+            - --auth=none
+            {{- end }}
+            {{- if .Values.vscode.vscodePath }}
+            - --extensions-dir={{ .Values.vscode.vscodePath }}
+            - --user-data-dir={{ .Values.vscode.vscodePath }}
+            - {{ .Values.vscode.hassConfig }}
+            {{- end }}
+          ports:
+            - name: vscode
+              containerPort: {{ .Values.vscode.service.port }}
+              protocol: TCP
+          env:
+            {{- if .Values.vscode.password }}
+            - name: PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "esphome.fullname" . }}-vscode
+                  key: password
+            {{- end }}
+            {{- range $key, $value := .Values.vscode.extraEnv }}
+            - name: {{ $key }}
+              value: {{ $value }}
+            {{- end }}
+          volumeMounts:
+          - mountPath: /config
+            name: config
+          {{- if .Values.extraVolumeMounts }}{{ toYaml .Values.extraVolumeMounts | trim | nindent 10 }}{{ end }}
+          {{- if .Values.usePodSecurityContext }}
+          securityContext:
+            runAsUser: {{ default 0 .Values.runAsUser }}
+          {{- if and (.Values.runAsUser) (.Values.fsGroup) }}
+          {{- if not (eq .Values.runAsUser 0.0) }}
+            fsGroup: {{ .Values.fsGroup }}
+          {{- end }}
+          {{- end }}
+          {{- end }}
+          resources:
+{{ toYaml .Values.vscode.resources | indent 12 }}
+        {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}

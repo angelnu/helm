@@ -1,0 +1,12 @@
+dependencies:
+- name: home-assistant
+  repository: ""
+  version: '>=0.10.0'
+- name: clusterfs
+  repository: file://../clusterfs
+  version: 0.1.0
+- name: postgresop
+  repository: file://../postgresop
+  version: 0.1.0
+digest: sha256:c065770666a562bc121331bd0a205a04e78305b811700c8659739370149abfd4
+generated: "2020-03-22T16:21:17.10111+01:00"

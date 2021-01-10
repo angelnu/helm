@@ -1,0 +1,21 @@
+{{- if .Values.persistentVolume.enabled }}
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ include "gitea-wrapper.fullname" . }}
+spec:
+  storageClassName: {{ include "gitea-wrapper.fullname" . }}
+  capacity:
+    storage: {{ .Values.gitea.persistence.size }}
+  accessModes:
+    - {{ .Values.gitea.persistence.accessMode | quote }}
+  {{- if ne (include "gitea-wrapper.persistentVolume-mountOptions" .) "" }}
+  mountOptions:
+{{ include "gitea-wrapper.persistentVolume-mountOptions" . | indent 2 }}
+  {{- end }}
+  {{- if .Values.persistentVolume.nfs }}
+  nfs:
+    server: '{{ include "gitea-wrapper.persistentVolume-nfs-server" . }}'
+    path: '{{ include "gitea-wrapper.persistentVolume-nfs-path" . }}'
+  {{- end }}
+{{ end }}

@@ -1,8 +1,10 @@
+db:
+  replicaSize: 1Gi
+  install_dependencies_only: false #Not sure why this is needed...
+
 tags:
   use_config: false
 openldap-volume:
-  heketi:
-    resturl: "http://heketi-api"
   glusterfs:
     path: openldap
   pvcName: openldap
@@ -24,7 +26,6 @@ openldap:
     #LDAP_READONLY_USER_PASSWORD: "password"
 
 keycloak-volume:
-  resturl: "http://heketi-api"
   glusterfs:
     path: keycloak
   pvcName: keycloak
