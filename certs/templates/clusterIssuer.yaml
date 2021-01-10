@@ -1,7 +1,7 @@
 {{- $outer := . -}}
 {{- range $issuer_name, $issuer := .Values.clusterIssuers -}}
 {{- with $outer -}}
-apiVersion: cert-manager.io/v1alpha2
+apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
 metadata:
   name: {{ $issuer_name }}

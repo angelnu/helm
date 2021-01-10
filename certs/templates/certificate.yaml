@@ -1,7 +1,7 @@
 {{- $outer := . -}}
 {{- range $index, $certificate := .Values.certificates -}}
 {{- with $outer -}}
-apiVersion: cert-manager.io/v1alpha2
+apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: {{ $certificate.name }}

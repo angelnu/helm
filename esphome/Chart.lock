@@ -2,5 +2,5 @@ dependencies:
 - name: clusterfs
   repository: file://../clusterfs
   version: 0.1.0
-digest: sha256:492b1ddaebac030f5a5040bd67a1478e642b954e73635f43e74bf10738243d49
-generated: "2020-03-12T22:23:31.754115+01:00"
+digest: sha256:71434ca7d971d92b7b6c2935a56a4e3bc038d2016cb1ede0c7c4b8390bf80913
+generated: "2021-01-10T19:14:38.628766765+01:00"
