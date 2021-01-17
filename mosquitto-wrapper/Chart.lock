@@ -1,0 +1,9 @@
+dependencies:
+- name: mosquitto
+  repository: https://storage.googleapis.com/t3n-helm-charts
+  version: '>=2.2.0'
+- name: clusterfs
+  repository: file://../clusterfs
+  version: 0.1.0
+digest: sha256:203406849ee221960b4b9e99ed758662f730fefeb4211ced02a5d08ddeadf365
+generated: "2021-01-17T22:47:54.565640862+01:00"

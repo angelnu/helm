@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "lorawan-server.fullname" . }}
+  labels:
+    {{- include "lorawan-server.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  loadBalancerIP: {{ .Values.service.loadBalancerIP }}
+  ports:
+    - port: {{ .Values.service.ports.http }}
+      targetPort: 8080
+      protocol: TCP
+      name: http
+    - port: {{ .Values.service.ports.https }}
+      targetPort: 8443
+      protocol: TCP
+      name: https
+    - port: {{ .Values.service.ports.gw_ingress }}
+      targetPort: 1680
+      protocol: UDP
+      name: gw-ingress
+  selector:
+    {{- include "lorawan-server.selectorLabels" . | nindent 4 }}

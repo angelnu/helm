@@ -1,0 +1,17 @@
+# Default values for home-assistant-wrapper.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+nameOverride: ""
+fullnameOverride: ""
+
+mosquitto-volume:
+  size: 2
+  glusterfs:
+    path: mosquitto
+  pvcName: mosquitto
+
+mosquitto:
+  persistence:
+    enabled: true
+    existingClaim: mosquitto
