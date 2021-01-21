@@ -13,7 +13,7 @@ clusterfs:
 
 image:
   repository: ghcr.io/jens-maus/raspberrymatic
-  #pullPolicy: IfNotPresent
+  pullPolicy: Always #IfNotPresent
 
 imagePullSecrets: []
 nameOverride: ""
